@@ -45,7 +45,7 @@ class SlackLogger
 
   # realtime events
   def log_realtime
-    realtime = Slack.realtime
+    realtime = Slack::RealTime::Client.new
 
     realtime.on :message do |m|
       puts m
@@ -97,41 +97,30 @@ class SlackLogger
       log_realtime
     end
 
-    realtime.start
+    realtime.start!
   end
 
-  def start
-    begin
-      realtime_thread = Thread.new {
-        log_realtime
-      }
+  def log
+    update_users
+    update_channels
+    update_groups if ENABLE_PRIVATE_CHANNEL
+    update_ims if ENABLE_DIRECT_MESSAGE
 
-      update_users
-      update_channels
-      update_groups if ENABLE_PRIVATE_CHANNEL
-      update_ims if ENABLE_DIRECT_MESSAGE
+    Channels.find.each do |c|
+      puts "loading messages from #{c[:name]}"
+      if c[:is_channel]
+        fetch_history(:channels_history, c[:id])
+      elsif c[:is_group] && ENABLE_PRIVATE_CHANNEL
+        fetch_history(:groups_history, c[:id])
+      end
+      sleep(1)
+    end
 
-      Channels.find.each do |c|
-        puts "loading messages from #{c[:name]}"
-        if c[:is_channel]
-          fetch_history(:channels_history, c[:id])
-        elsif c[:is_group] && ENABLE_PRIVATE_CHANNEL
-          fetch_history(:groups_history, c[:id])
-        end
+    if ENABLE_DIRECT_MESSAGE
+      Ims.find.each do |i|
+        fetch_history(:im_history, i[:id])
         sleep(1)
       end
-
-      if ENABLE_DIRECT_MESSAGE
-        Ims.find.each do |i|
-          fetch_history(:im_history, i[:id])
-          sleep(1)
-        end
-      end
-
-      # realtime event is joined and dont exit current thread
-      realtime_thread.join
-    ensure
-      realtime_thread.kill
     end
   end
 end
