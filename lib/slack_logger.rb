@@ -7,29 +7,33 @@ ENABLE_PRIVATE_CHANNEL = config['logger']['enable_private_channel']
 ENABLE_DIRECT_MESSAGE = config['logger']['enable_direct_message']
 
 class SlackLogger
+  def initialize
+    @client = Slack::Web::Client.new
+  end
+
   def update_users
-    users = Slack.users_list['members']
+    users = @client.users_list['members']
     replace_users(users)
   end
 
   def update_channels
-    channels = Slack.channels_list['channels']
+    channels = @client.channels_list['channels']
     replace_channels(channels)
   end
 
   def update_groups
-    groups = Slack.groups_list['groups']
+    groups = @client.groups_list['groups']
     replace_channels(groups)
   end
 
   def update_ims
-    ims = Slack.im_list['ims']
+    ims = @client.im_list['ims']
     replace_ims(ims)
   end
 
   # log history messages
   def fetch_history(target, channel)
-    messages = Slack.send(
+    messages = @client.send(
       target,
       channel: channel,
       count: 1000,
@@ -72,10 +76,17 @@ class SlackLogger
       update_channels
     end
 
+    realtime.on :channel_joined do |c|
+      puts "channel has renamed"
+      update_channels
+      fetch_history(:channels_history, c[:id])
+    end
+
     if ENABLE_PRIVATE_CHANNEL
       realtime.on :group_joined do |c|
         puts "group has joined"
         update_groups
+        fetch_history(:groups_history, c[:id])
       end
 
       realtime.on :group_rename do |c|
@@ -88,6 +99,7 @@ class SlackLogger
       realtime.on :im_created do |c|
         puts "direct message has created"
         update_ims
+        fetch_history(:im_history, c[:id])
       end
     end
 
