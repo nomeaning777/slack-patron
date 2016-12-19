@@ -79,14 +79,14 @@ class SlackLogger
     realtime.on :channel_joined do |c|
       puts "channel has renamed"
       update_channels
-      fetch_history(:channels_history, c[:id])
+      fetch_history(:channels_history, c[:channel][:id])
     end
 
     if ENABLE_PRIVATE_CHANNEL
       realtime.on :group_joined do |c|
         puts "group has joined"
         update_groups
-        fetch_history(:groups_history, c[:id])
+        fetch_history(:groups_history, c[:group][:id])
       end
 
       realtime.on :group_rename do |c|
@@ -99,7 +99,7 @@ class SlackLogger
       realtime.on :im_created do |c|
         puts "direct message has created"
         update_ims
-        fetch_history(:im_history, c[:id])
+        fetch_history(:im_history, c[:im][:id])
       end
     end
 
