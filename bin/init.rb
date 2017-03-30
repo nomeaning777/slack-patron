@@ -10,7 +10,8 @@ config = {
   'default_channel' => 'general',
   'logger' => {
     'enable_private_channel' => true,
-    'enable_direct_message' => true
+    'enable_direct_message' => true,
+    'auto_join' => true
   },
   'database' => {
     'uri' => 'mongo:27017',

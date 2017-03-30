@@ -5,6 +5,7 @@ require './lib/db'
 config = YAML.load_file('./config.yml')
 ENABLE_PRIVATE_CHANNEL = config['logger']['enable_private_channel']
 ENABLE_DIRECT_MESSAGE = config['logger']['enable_direct_message']
+AUTO_JOIN = config['logger']['auto_join']
 
 class SlackLogger
   def initialize
@@ -69,6 +70,7 @@ class SlackLogger
     realtime.on :channel_created do |c|
       puts "channel has created"
       update_channels
+      @client.channels_join(name: c[:channel][:name]) if AUTO_JOIN
     end
 
     realtime.on :channel_rename do |c|
@@ -77,7 +79,7 @@ class SlackLogger
     end
 
     realtime.on :channel_joined do |c|
-      puts "channel has renamed"
+      puts "it is joined on channel"
       update_channels
       fetch_history(:channels_history, c[:channel][:id])
     end
