@@ -2,10 +2,15 @@ require 'yaml'
 require './lib/slack'
 require './lib/db'
 
-config = YAML.load_file('./config.yml')
-ENABLE_PRIVATE_CHANNEL = config['logger']['enable_private_channel']
-ENABLE_DIRECT_MESSAGE = config['logger']['enable_direct_message']
-AUTO_JOIN = config['logger']['auto_join']
+def parse_env_bool(env)
+  return false if !env
+  return false if  env == '' || env == '0' || env.downcase == 'false'
+  return true
+end
+
+ENABLE_PRIVATE_CHANNEL = parse_env_bool(ENV['ENABLE_PRIVATE_CHANNEL'])
+ENABLE_DIRECT_MESSAGE = parse_env_bool(ENV['ENABLE_DIRECT_MESSAGE'])
+AUTO_JOIN = parse_env_bool(ENV['AUTO_JOIN'])
 
 class SlackLogger
   def initialize

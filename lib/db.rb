@@ -1,9 +1,6 @@
 require 'mongo'
 
-config = YAML.load_file('./config.yml')
-
-db_config = config['database']
-db = Mongo::Client.new([ db_config['uri'] ], database: db_config['database'])
+db = Mongo::Client.new(ENV['MONGO_DB_URL'])
 
 Users = db['users']
 Users.indexes.create_one({ :id => 1 }, :unique => true)
