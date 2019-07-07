@@ -4,8 +4,6 @@ require './lib/slack_import'
 require './lib/slack'
 require './lib/db'
 
-config = YAML.load_file('./config.yml')
-
 configure do
   set :absolute_redirects, false
   set :prefixed_redirects, true
@@ -138,7 +136,7 @@ end
 get '/' do
   hashed_channels = channels
   default_channel, _ = hashed_channels.find do |id, channel|
-    channel[:name] == config['default_channel']
+    channel[:name] == 'general' # TODO: Configurable
   end
   if default_channel.nil?
     default_channel, _ = hashed_channels.first
