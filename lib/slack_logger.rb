@@ -127,10 +127,14 @@ class SlackLogger
 
     Channels.find.each do |c|
       puts "loading messages from #{c[:name]}"
-      if c[:is_channel]
-        fetch_history(:channels_history, c[:id])
-      elsif c[:is_group] && ENABLE_PRIVATE_CHANNEL
-        fetch_history(:groups_history, c[:id])
+      begin
+        if c[:is_channel]
+          fetch_history(:channels_history, c[:id])
+        elsif c[:is_group] && ENABLE_PRIVATE_CHANNEL
+          fetch_history(:groups_history, c[:id])
+        end
+      rescue Slack::Web::Api::Error => e
+        raise unless /channel_not_found/ =~ e.message
       end
       sleep(1)
     end
