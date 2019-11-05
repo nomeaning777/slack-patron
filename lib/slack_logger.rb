@@ -134,7 +134,8 @@ class SlackLogger
           fetch_history(:groups_history, c[:id])
         end
       rescue Slack::Web::Api::Error => e
-        raise unless /channel_not_found/ =~ e.message
+        STDERR.puts "failed to load messages from #{c[:name]}"
+        STDERR.puts e.full_message
       end
       sleep(1)
     end
